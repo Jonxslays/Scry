@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "scry"
+version = "0.1.0"
+description = "Build your vision."
+homepage = "https://github.com/Jonxslays/Scry"
+repository = "https://github.com/Jonxslays/Scry"
+authors = ["Jonxslays"]
+readme = "README.md"
+license = "MIT"
+packages = [{ include = "scry" }]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.12"
+
+[tool.poetry.dev-dependencies]
+len8 = "==0.7.2"
+pyright = "==1.1.226"
+mypy = "==0.931"
+nox = "==2022.1.7"
+isort = "==5.10.1"
+flake8 = "==4.0.1"
+black = "==22.1.0"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.len8]
+include = ["scry", "tests", "noxfile.py"]
+code-length = 88
+docs-length = 72
+
+[tool.mypy]
+strict = true
+
+[tool.pyright]
+include = ["scry"]
+ignore = ["tests"]
+typeCheckingMode = "strict"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
