@@ -1,0 +1,6 @@
+push    int     31
+push    int     100
+sub
+push    string  100-31=
+add
+print
