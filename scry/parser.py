@@ -117,6 +117,26 @@ class Parser:
                         self.convert_value_to_type(next_token, tokens.pop(0))
                     )
 
+            elif token.token_type is TokenType.POP:
+                if not self._stack:
+                    raise RuntimeError("Not enough data on the stack to pop")
+
+                ident_token = tokens.pop(0)
+                if ident_token.token_type is not TokenType.IDENT:
+                    raise RuntimeError(
+                        f"{ident_token.value!r} is an invalid token after pop"
+                    )
+
+                if ident_token.value not in self._state:
+                    raise RuntimeError(
+                        f"Cannot pop into unknown variable {ident_token.value!r}"
+                    )
+
+                popped = self._stack.pop()
+                self._state[ident_token.value] = Variable(
+                    ident_token.value, type(popped), popped
+                )
+
             elif token.token_type in (
                 TokenType.ADD,
                 TokenType.SUB,
@@ -142,6 +162,12 @@ class Parser:
 
                 if ident_token.value.lower() in KEYWORDS:
                     raise SyntaxError(f"{ident_token.value!r} is a reserved keyword")
+
+                if any(
+                    delim in ident_token.value
+                    for delim in (" ", "(", ")", "{", "}", "[", "]")
+                ):
+                    raise SyntaxError("Identifiers can not contain spaces")
 
                 if type_token.value is Type.INT:
                     variable_type = int
@@ -177,28 +203,6 @@ class Parser:
 
                 variable = self._state[ident_token.value]
                 variable.value = variable.type(value_token.value)
-
-            elif token.token_type is TokenType.POP:
-                if not self._stack:
-                    raise RuntimeError("Not enough data on the stack to pop")
-
-                ident = tokens.pop(0)
-                if ident.token_type is not TokenType.IDENT:
-                    raise RuntimeError(f"{ident.value!r} is an invalid token after pop")
-
-                if ident.value not in self._state:
-                    raise RuntimeError(
-                        f"Cannot pop into unknown variable {ident.value!r}"
-                    )
-
-                if any(
-                    delim in ident.value
-                    for delim in (" ", "(", ")", "{", "}", "[", "]")
-                ):
-                    raise SyntaxError("Identifiers can not contain spaces")
-
-                popped = self._stack.pop()
-                self._state[ident.value] = Variable(ident.value, type(popped), popped)
 
             elif token.token_type is TokenType.PRINT:
                 if token.value is TokenType.IDENT:
