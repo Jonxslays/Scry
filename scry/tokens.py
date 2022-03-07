@@ -4,6 +4,7 @@ import enum
 import typing as t
 from dataclasses import dataclass
 
+
 KEYWORDS = (
     "push",     # Push a variable or literal onto the stack (stack1)
     "add",      # Add top 2 elements on the stack (stack1 = stack1 + stack2)
@@ -16,19 +17,16 @@ KEYWORDS = (
     "fdiv",     # Floor divide the top 2 elements on the stack (stack1 = stack1 // stack2)
     "pow",      # Exponentiate the top 2 elements on the stack (stack1 = stack1 ** stack2)
     "new",      # Create a new variable, requires a type and name
-    "+",        # Add
-    "-",        # Subtract
-    "*",        # Multiply
-    "/",        # Divide
-    "\\",       # TODO: implement me
     "//",       # Floor divide
     "in",       # TODO: implement me
+    "if",       # TODO: implement me
     "loop",     # TODO: implement me
     "for",      # TODO: implement me
     "end",      # TODO: implement me
     "start",    # TODO: implement me
     "funk",     # TODO: implement me - maybe?
 )
+
 
 class TokenType(enum.Enum):
     PUSH = 0
