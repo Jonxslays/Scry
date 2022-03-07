@@ -99,7 +99,7 @@ class Lexer:
 
             if not line.lower().rstrip("\n").endswith("print"):
                 value = line[5:].lstrip().rstrip("\n")
-
+                self._tokens[-1].value = TokenType.IDENT
                 self._tokens.append(Token(TokenType.IDENT, value=value))
 
             return None
