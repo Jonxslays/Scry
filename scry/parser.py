@@ -188,50 +188,21 @@ class Parser:
                 self._state[ident.value] = Variable(ident.value, type(popped), popped)
 
             elif token.token_type is TokenType.PRINT:
-                if tokens:
+                if token.value is TokenType.IDENT:
                     next_token = tokens.pop(0)
 
-                    if next_token.token_type is TokenType.IDENT:
-                        if next_token.value not in self._state:
+                    if next_token.value not in self._state:
                             raise RuntimeError(f"{next_token.value} is an unknown variable")
 
-                        print(self._state[next_token.value].value)
+                    target = self._state[next_token.value].value
 
-                    else:
-                        tokens.insert(0, next_token)
+                else:
+                    if not self._stack:
+                        raise RuntimeError("Not enough data on the stack to print")
 
-                        if not self._stack:
-                            raise RuntimeError("Not enough data on the stack to print")
+                    target = self._stack.pop()
 
-                        print(self._stack.pop())
-
-                    continue
-
-                if not self._stack:
-                    raise RuntimeError("Not enough data on the stack to print")
-
-                print(self._stack.pop())
-
-                # if tokens:
-                #     next_token = tokens.pop(0)
-                #     # print(next_token)
-
-                #     if next_token.token_type is TokenType.IDENT:
-                #         if next_token.value not in self._state:
-                #             raise RuntimeError(f"{next_token.value!r} is not defined")
-
-                #         print(self._state[next_token.value].value)
-
-                #     else:
-                #         tokens.insert(0, next_token)
-
-                #     continue
-
-                # # print("no next token")
-                # if not self._stack:
-                #     raise RuntimeError("Not enough data on the stack to print")
-                # # print(self._stack)
-                # print(self._stack.pop())
+                print(target)
 
             else:
                 raise RuntimeError(f"Error parsing token {token}")
