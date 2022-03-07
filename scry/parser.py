@@ -56,6 +56,8 @@ class Parser:
             error_op = "mul"
         elif op is TokenType.DIV:
             error_op = "div"
+        elif op is TokenType.FDIV:
+            error_op = "fdiv"
         elif op is TokenType.POW:
             error_op = "pow"
         else:
@@ -90,8 +92,10 @@ class Parser:
             self._stack.append(a * b)
         elif op is TokenType.DIV:
             self._stack.append(a / b)
+        elif op is TokenType.FDIV:
+            self._stack.append(a // b)
         elif op is TokenType.POW:
-            self._stack.append(a**b)
+            self._stack.append(a ** b)
 
     def parse(self, tokens: list[Token]) -> None:
         while len(tokens) > 0:
@@ -119,6 +123,7 @@ class Parser:
                 TokenType.POW,
                 TokenType.MUL,
                 TokenType.DIV,
+                TokenType.FDIV,
             ):
                 self.perform_basic_op(token.token_type)
 

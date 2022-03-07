@@ -76,6 +76,9 @@ class Lexer:
         if line.lower().startswith("div"):
             return self._tokens.append(Token(TokenType.DIV))
 
+        if line.lower().startswith("fdiv"):
+            return self._tokens.append(Token(TokenType.FDIV))
+
         if line.lower().startswith("pow"):
             return self._tokens.append(Token(TokenType.POW))
 
