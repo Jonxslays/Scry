@@ -25,6 +25,10 @@ class Lexer:
 
                 self.lex_next_token(line)
 
+        # # For debugging
+        # from pprint import pprint
+        # pprint(self.tokens)
+
     def lex_with_type(self, line: str) -> list[Token]:
         data = [l.lstrip() for l in line.split(" ", maxsplit=1)]
 

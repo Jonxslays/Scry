@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import typing as t
 
 from scry.tokens import KEYWORDS, Token, TokenType
@@ -34,13 +35,29 @@ class Parser:
 
             if not new_string.startswith('"'):
                 raise SyntaxError(
-                    'String declared, but no " present to begin the string'
+                    "String declared, but no \" present to begin the string"
                 )
 
             if not new_string.endswith('"'):
-                raise SyntaxError('String declared, but no " present to end the string')
+                raise SyntaxError(
+                    "String declared, but no \" present to end the string"
+                )
 
-            return value_token.value[1:-1]
+            var_regex = re.compile(r"\$\{(.*)\}")
+            var_matches = var_regex.findall(new_string)
+
+            for match in var_matches:
+                if match not in self._state:
+                    raise SyntaxError(f"Unknown symbol {match!r}")
+
+                replacement = self._state[match].value
+                new_string = new_string.replace(
+                    "${" + match + "}",
+                    replacement if isinstance(replacement, str)
+                    else str(replacement),
+                )
+
+            return new_string[1:-1]
 
         raise Exception("Something went wrong parsing types")
 
