@@ -18,7 +18,9 @@ class Lexer:
     def lex(self) -> None:
         with open(self._file) as f:
             for line in f:
-                if line == "\n":
+                line = line.lstrip()
+
+                if not line:
                     continue
 
                 self.lex_next_token(line)

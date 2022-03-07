@@ -179,9 +179,15 @@ class Parser:
                     raise RuntimeError(f"{ident.value!r} is an invalid token after pop")
 
                 if ident.value not in self._state:
-                    raise RuntimeError(f"Cannot pop into unknown variable {ident.value!r}")
+                    raise RuntimeError(
+                        f"Cannot pop into unknown variable {ident.value!r}"
+                    )
 
-                if " " in ident.value:
+                if any(
+                    delim in ident.value for delim in (
+                        " ", "(", ")", "{", "}", "[", "]"
+                    )
+                ):
                     raise SyntaxError("Identifiers can not contain spaces")
 
                 popped = self._stack.pop()
@@ -192,7 +198,7 @@ class Parser:
                     next_token = tokens.pop(0)
 
                     if next_token.value not in self._state:
-                            raise RuntimeError(f"{next_token.value} is an unknown variable")
+                            raise RuntimeError(f"{next_token.value!r} is an unknown variable")
 
                     target = self._state[next_token.value].value
 

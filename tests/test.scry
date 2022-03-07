@@ -1,7 +1,1 @@
-push    int     1
-push    int     2
-new     int     number
-move    number  100
-print
-print
-print   number
+push
