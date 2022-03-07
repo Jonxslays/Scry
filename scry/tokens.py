@@ -24,6 +24,9 @@ KEYWORDS = (
     "end",  # TODO: implement me
     "start",  # TODO: implement me
     "funk",  # TODO: implement me - maybe?
+    "float",  # TODO: implement me
+    "uint",  # TODO: implement me
+    "ufloat"  # TODO: implement me
 )
 
 
@@ -42,6 +45,9 @@ class TokenType(enum.Enum):
     IDENT = 11
     NEW = 12
     FDIV = 13
+    FLOAT = 14
+    UINT = 15
+    UFLOAT = 16
 
 
 @dataclass
