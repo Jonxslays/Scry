@@ -1,6 +1,7 @@
-push    int     31
-push    int     100
-sub
-push    string  100-31=
-add
+push    int     1
+push    int     2
+new     int     number
+move    number  100
 print
+print
+print   number

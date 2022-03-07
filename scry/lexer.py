@@ -4,7 +4,7 @@ from pathlib import Path
 
 from scry.tokens import Token, TokenType
 from scry.types import Type
-
+from pprint import pprint # type: ignore
 
 class Lexer:
     def __init__(self, file: str | Path) -> None:
@@ -18,13 +18,49 @@ class Lexer:
     def lex(self) -> None:
         with open(self._file) as f:
             for line in f:
-                self.get_next_token(line)
+                if line == "\n":
+                    continue
 
-    def get_next_token(self, line: str) -> None:
+                self.lex_next_token(line)
+
+    def lex_with_type(self, line: str) -> list[Token]:
+        data = [l.lstrip() for l in line.split(" ", maxsplit=1)]
+
+        if len(data) == 1:
+            return [Token(token_type=TokenType.IDENT, value=data[0])]
+
+        type_, value = data
+
+        if type_.lower() == "int":
+            return [
+                Token(TokenType.TYPE, value=Type.INT),
+                Token(TokenType.VALUE, value=value),
+            ]
+
+        if type_.lower() == "bool":
+            return [
+                Token(TokenType.TYPE, value=Type.BOOL),
+                Token(TokenType.VALUE, value=value),
+            ]
+
+        if type_.lower() == "string":
+            return [
+                Token(TokenType.TYPE, value=Type.STRING),
+                Token(TokenType.VALUE, value=value),
+            ]
+
+        raise SyntaxError(f"Invalid type: {line}")
+
+    def lex_new_var(self, line: str) -> None:
+        data = self.lex_with_type(line)
+        self._tokens.append(data.pop(0))
+        self._tokens.append(Token(TokenType.IDENT, value=data.pop(0).value))
+
+    def lex_next_token(self, line: str) -> None:
         if line.lower().startswith("push"):
             raw_value = line[4:].lstrip().rstrip("\n")
             self._tokens.append(Token(TokenType.PUSH))
-            return self.get_next_token(raw_value)
+            return self._tokens.extend(self.lex_with_type(raw_value))
 
         if line.lower().startswith("add"):
             return self._tokens.append(Token(TokenType.ADD))
@@ -32,31 +68,40 @@ class Lexer:
         if line.lower().startswith("sub"):
             return self._tokens.append(Token(TokenType.SUB))
 
+        if line.lower().startswith("mul"):
+            return self._tokens.append(Token(TokenType.MUL))
+
+        if line.lower().startswith("div"):
+            return self._tokens.append(Token(TokenType.DIV))
+
+        if line.lower().startswith("pow"):
+            return self._tokens.append(Token(TokenType.POW))
+
         if line.lower().startswith("pop"):
             value = line[3:].lstrip().rstrip("\n")
-            return self._tokens.append(Token(TokenType.POP, value=value))
+            self._tokens.append(Token(TokenType.POP))
+            return self._tokens.append(Token(TokenType.IDENT, value=value))
+
+        if line.lower().startswith("new"):
+            value = line[3:].lstrip(" ").rstrip("\n")
+            self._tokens.append(Token(TokenType.NEW))
+            return self.lex_new_var(value)
 
         if line.lower().startswith("move"):
-            raise NotImplementedError("move instruction is not yet implemented")
-            # value = line[4:].lstrip().rstrip("\n")
-            # return self._tokens.append(Token(TokenType.MOVE, value=value))
+            value = line[4:].lstrip().rstrip("\n")
+            ident, data = value.split(" ", maxsplit=1)
+            self._tokens.append(Token(TokenType.MOVE))
+            self._tokens.append(Token(TokenType.IDENT, value=ident))
+            return self._tokens.append(Token(TokenType.VALUE, value=data.lstrip()))
 
         if line.lower().startswith("print"):
-            return self._tokens.append(Token(TokenType.PRINT))
+            self._tokens.append(Token(TokenType.PRINT))
 
-        if line.lower().startswith("int"):
-            value = line[3:].lstrip().rstrip("\n")
-            self._tokens.append(Token(TokenType.TYPE, value=Type.INT))
-            return self._tokens.append(Token(TokenType.VALUE, value=value))
+            if not line.lower().rstrip("\n").endswith("print"):
+                value = line[5:].lstrip().rstrip("\n")
 
-        if line.lower().startswith("bool"):
-            value = line[4:].lstrip().rstrip("\n")
-            self._tokens.append(Token(TokenType.TYPE, value=Type.BOOL))
-            return self._tokens.append(Token(TokenType.VALUE, value=value))
+                self._tokens.append(Token(TokenType.IDENT, value=value))
 
-        if line.lower().startswith("string"):
-            value = line[6:].lstrip().rstrip("\n")
-            self._tokens.append(Token(TokenType.TYPE, value=Type.STRING))
-            return self._tokens.append(Token(TokenType.VALUE, value=value))
+            return None
 
         raise SyntaxError(f"Invalid syntax:\n{line}")
