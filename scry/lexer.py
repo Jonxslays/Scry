@@ -4,7 +4,7 @@ from pathlib import Path
 
 from scry.tokens import Token, TokenType
 from scry.types import Type
-from pprint import pprint # type: ignore
+
 
 class Lexer:
     def __init__(self, file: str | Path) -> None:

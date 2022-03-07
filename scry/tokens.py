@@ -4,27 +4,26 @@ import enum
 import typing as t
 from dataclasses import dataclass
 
-
 KEYWORDS = (
-    "push",     # Push a variable or literal onto the stack (stack1)
-    "add",      # Add top 2 elements on the stack (stack1 = stack1 + stack2)
-    "sub",      # Subtract top 2 elements on the stack (stack1 = stack1 - stack2)
-    "print",    # Pass a variable to print, pops and prints the top of stack by default
-    "pop",      # Pop 1 from the stack into a declared variable
-    "move",     # Move a value into a declared variable
-    "mul",      # Multiply the top 2 elements on the stack (stack1 = stack1 * stack2)
-    "div",      # Divide the top 2 elements on the stack (stack1 = stack1 / stack2)
-    "fdiv",     # Floor divide the top 2 elements on the stack (stack1 = stack1 // stack2)
-    "pow",      # Exponentiate the top 2 elements on the stack (stack1 = stack1 ** stack2)
-    "new",      # Create a new variable, requires a type and name
-    "//",       # Floor divide
-    "in",       # TODO: implement me
-    "if",       # TODO: implement me
-    "loop",     # TODO: implement me
-    "for",      # TODO: implement me
-    "end",      # TODO: implement me
-    "start",    # TODO: implement me
-    "funk",     # TODO: implement me - maybe?
+    "push",  # Push a variable or literal onto the stack (stack1)
+    "add",  # Add top 2 elements on the stack (stack1 = stack1 + stack2)
+    "sub",  # Subtract top 2 elements on the stack (stack1 = stack1 - stack2)
+    "print",  # Pass a variable to print, pops and prints the top of stack by default
+    "pop",  # Pop 1 from the stack into a declared variable
+    "move",  # Move a value into a declared variable
+    "mul",  # Multiply the top 2 elements on the stack (stack1 = stack1 * stack2)
+    "div",  # Divide the top 2 elements on the stack (stack1 = stack1 / stack2)
+    "fdiv",  # Floor divide the top 2 elements on the stack (stack1 = stack1 // stack2)
+    "pow",  # Exponentiate the top 2 elements on the stack (stack1 = stack1 ** stack2)
+    "new",  # Create a new variable, requires a type and name
+    "//",  # Floor divide
+    "in",  # TODO: implement me
+    "if",  # TODO: implement me
+    "loop",  # TODO: implement me
+    "for",  # TODO: implement me
+    "end",  # TODO: implement me
+    "start",  # TODO: implement me
+    "funk",  # TODO: implement me - maybe?
 )
 
 

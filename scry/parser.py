@@ -34,13 +34,11 @@ class Parser:
 
             if not new_string.startswith('"'):
                 raise SyntaxError(
-                    "String declared, but no \" present to begin the string"
+                    'String declared, but no " present to begin the string'
                 )
 
-            if not new_string.endswith("\""):
-                raise SyntaxError(
-                    "String declared, but no \" present to end the string"
-                )
+            if not new_string.endswith('"'):
+                raise SyntaxError('String declared, but no " present to end the string')
 
             return value_token.value[1:-1]
 
@@ -93,7 +91,7 @@ class Parser:
         elif op is TokenType.DIV:
             self._stack.append(a / b)
         elif op is TokenType.POW:
-            self._stack.append(a ** b)
+            self._stack.append(a**b)
 
     def parse(self, tokens: list[Token]) -> None:
         while len(tokens) > 0:
@@ -127,6 +125,7 @@ class Parser:
             elif token.token_type is TokenType.NEW:
                 type_token = tokens.pop(0)
                 ident_token = tokens.pop(0)
+                variable_type: type
 
                 if (
                     type_token.token_type is not TokenType.TYPE
@@ -162,10 +161,14 @@ class Parser:
                     ident_token.token_type is not TokenType.IDENT
                     or value_token.token_type is not TokenType.VALUE
                 ):
-                    raise SyntaxError("Move must be followed by an identifier and a value")
+                    raise SyntaxError(
+                        "Move must be followed by an identifier and a value"
+                    )
 
                 if ident_token.value not in self._state:
-                    raise RuntimeError(f"Cannot move into unknown variable {ident_token.value!r}")
+                    raise RuntimeError(
+                        f"Cannot move into unknown variable {ident_token.value!r}"
+                    )
 
                 variable = self._state[ident_token.value]
                 variable.value = variable.type(value_token.value)
@@ -184,9 +187,8 @@ class Parser:
                     )
 
                 if any(
-                    delim in ident.value for delim in (
-                        " ", "(", ")", "{", "}", "[", "]"
-                    )
+                    delim in ident.value
+                    for delim in (" ", "(", ")", "{", "}", "[", "]")
                 ):
                     raise SyntaxError("Identifiers can not contain spaces")
 
@@ -198,7 +200,9 @@ class Parser:
                     next_token = tokens.pop(0)
 
                     if next_token.value not in self._state:
-                            raise RuntimeError(f"{next_token.value!r} is an unknown variable")
+                        raise RuntimeError(
+                            f"{next_token.value!r} is an unknown variable"
+                        )
 
                     target = self._state[next_token.value].value
 
