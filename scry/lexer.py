@@ -16,101 +16,148 @@ class Lexer:
         return self._tokens
 
     def lex(self) -> None:
+        last_line = 0
+
         with open(self._file) as f:
-            for line in f:
+            for i, line in enumerate(f):
                 line = line.lstrip()
+                last_line = i + 1
 
                 if not line:
                     continue
 
-                self.lex_next_token(line)
+                self.lex_next_token(last_line, line)
+
+        self._tokens.append(Token(TokenType.EOF, line=last_line))
 
         # # For debugging
         # from pprint import pprint
         # pprint(self.tokens)
 
-    def lex_with_type(self, line: str) -> list[Token]:
+    def lex_with_type(self, line_num: int, line: str) -> list[Token]:
         data = [l.lstrip() for l in line.split(" ", maxsplit=1)]
 
         if len(data) == 1:
-            return [Token(token_type=TokenType.IDENT, value=data[0])]
+            return [Token(TokenType.IDENT, line=line_num, value=data[0])]
 
         type_, value = data
 
         if type_.lower() == "int":
             return [
-                Token(TokenType.TYPE, value=Type.INT),
-                Token(TokenType.VALUE, value=value),
+                Token(TokenType.TYPE, line=line_num, value=Type.INT),
+                Token(TokenType.VALUE, line=line_num, value=value),
             ]
 
         if type_.lower() == "bool":
             return [
-                Token(TokenType.TYPE, value=Type.BOOL),
-                Token(TokenType.VALUE, value=value),
+                Token(TokenType.TYPE, line=line_num, value=Type.BOOL),
+                Token(TokenType.VALUE, line=line_num, value=value),
             ]
 
         if type_.lower() == "string":
             return [
-                Token(TokenType.TYPE, value=Type.STRING),
-                Token(TokenType.VALUE, value=value),
+                Token(TokenType.TYPE, line=line_num, value=Type.STRING),
+                Token(TokenType.VALUE, line=line_num, value=value),
             ]
 
-        raise SyntaxError(f"Invalid type: {line}")
+        raise SyntaxError(f"Invalid type, line {line_num} -> {line}")
 
-    def lex_new_var(self, line: str) -> None:
-        data = self.lex_with_type(line)
+    def lex_new_var(self, line_num: int, line: str) -> None:
+        data = self.lex_with_type(line_num, line)
         self._tokens.append(data.pop(0))
-        self._tokens.append(Token(TokenType.IDENT, value=data.pop(0).value))
+        self._tokens.append(
+            Token(TokenType.IDENT, line=line_num, value=data.pop(0).value)
+        )
 
-    def lex_next_token(self, line: str) -> None:
+    def lex_next_token(self, line_num: int, line: str) -> None:
+        if line.lower().startswith("pushd"):
+            raw_value = line[5:].lstrip().rstrip("\n")
+            self._tokens.append(Token(TokenType.PUSHD, line=line_num))
+            return self._tokens.extend(self.lex_with_type(line_num, raw_value))
+
         if line.lower().startswith("push"):
             raw_value = line[4:].lstrip().rstrip("\n")
-            self._tokens.append(Token(TokenType.PUSH))
-            return self._tokens.extend(self.lex_with_type(raw_value))
+            self._tokens.append(Token(TokenType.PUSH, line=line_num))
+            self._tokens.extend(self.lex_with_type(line_num, raw_value))
+            return
 
         if line.lower().startswith("add"):
-            return self._tokens.append(Token(TokenType.ADD))
+            return self._tokens.append(Token(TokenType.ADD, line=line_num))
 
         if line.lower().startswith("sub"):
-            return self._tokens.append(Token(TokenType.SUB))
+            return self._tokens.append(Token(TokenType.SUB, line=line_num))
 
         if line.lower().startswith("mul"):
-            return self._tokens.append(Token(TokenType.MUL))
+            return self._tokens.append(Token(TokenType.MUL, line=line_num))
 
         if line.lower().startswith("div"):
-            return self._tokens.append(Token(TokenType.DIV))
+            return self._tokens.append(Token(TokenType.DIV, line=line_num))
 
         if line.lower().startswith("fdiv"):
-            return self._tokens.append(Token(TokenType.FDIV))
+            return self._tokens.append(Token(TokenType.FDIV, line=line_num))
 
         if line.lower().startswith("pow"):
-            return self._tokens.append(Token(TokenType.POW))
+            return self._tokens.append(Token(TokenType.POW, line=line_num))
 
         if line.lower().startswith("pop"):
             value = line[3:].lstrip().rstrip("\n")
-            self._tokens.append(Token(TokenType.POP))
-            return self._tokens.append(Token(TokenType.IDENT, value=value))
+            self._tokens.append(Token(TokenType.POP, line=line_num))
 
-        if line.lower().startswith("new"):
+            if value == "drop":
+                return self._tokens.append(Token(TokenType.DROP, line=line_num))
+
+            return self._tokens.append(
+                Token(
+                    TokenType.IDENT, line=line_num, value=None if value == "" else value
+                )
+            )
+
+        if line.lower().startswith("drop"):
+            value = line[4:].lstrip().rstrip("\n")
+            self._tokens.append(Token(TokenType.DROP, line=line_num))
+            return self._tokens.append(
+                Token(TokenType.IDENT, line=line_num, value=value)
+            )
+
+        if line.lower().startswith("var"):
             value = line[3:].lstrip(" ").rstrip("\n")
-            self._tokens.append(Token(TokenType.NEW))
-            return self.lex_new_var(value)
+            self._tokens.append(Token(TokenType.VAR, line=line_num))
+            return self.lex_new_var(line_num, value)
 
         if line.lower().startswith("move"):
             value = line[4:].lstrip().rstrip("\n")
-            ident, data = value.split(" ", maxsplit=1)
-            self._tokens.append(Token(TokenType.MOVE))
-            self._tokens.append(Token(TokenType.IDENT, value=ident))
-            return self._tokens.append(Token(TokenType.VALUE, value=data.lstrip()))
+
+            try:
+                ident, data = value.split(" ", maxsplit=1)
+            except ValueError:
+                raise SyntaxError(
+                    f"Invalid syntax, line {line_num} -> "
+                    "move requires a variable and a value to move"
+                )
+
+            if ident.isdigit():
+                raise SyntaxError(
+                    f"Invalid syntax, line {line_num} -> "
+                    "variables can not contain only numbers"
+                )
+
+            self._tokens.append(Token(TokenType.MOVE, line=line_num))
+            self._tokens.append(
+                Token(TokenType.IDENT, line=line_num, value=ident)
+            )
+
+            return self._tokens.append(
+                Token(TokenType.VALUE, line=line_num, value=data.lstrip())
+            )
 
         if line.lower().startswith("print"):
-            self._tokens.append(Token(TokenType.PRINT))
+            self._tokens.append(Token(TokenType.PRINT, line=line_num))
 
             if not line.lower().rstrip("\n").endswith("print"):
                 value = line[5:].lstrip().rstrip("\n")
                 self._tokens[-1].value = TokenType.IDENT
-                self._tokens.append(Token(TokenType.IDENT, value=value))
+                self._tokens.append(Token(TokenType.IDENT, line=line_num, value=value))
 
             return None
 
-        raise SyntaxError(f"Invalid syntax:\n{line}")
+        raise SyntaxError(f"Invalid syntax, line {line_num} -> {line}")

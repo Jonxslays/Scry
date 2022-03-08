@@ -28,19 +28,22 @@ class Parser:
             if string == "false":
                 return False
 
-            raise SyntaxError("Invalid boolean value")
+            raise SyntaxError(
+                "Invalid boolean value, line "
+                f"{type_token.line} -> {string!r}"
+            )
 
         if type_token.value is Type.STRING:
             new_string: str = value_token.value
 
             if not new_string.startswith('"'):
                 raise SyntaxError(
-                    "String declared, but no \" present to begin the string"
+                    f"Missing opening `\"`, line {type_token.line}"
                 )
 
             if not new_string.endswith('"'):
                 raise SyntaxError(
-                    "String declared, but no \" present to end the string"
+                    f"Missing closing `\"`, line {type_token.line}"
                 )
 
             var_regex = re.compile(r"\$\{(.*)\}")
@@ -48,7 +51,9 @@ class Parser:
 
             for match in var_matches:
                 if match not in self._state:
-                    raise SyntaxError(f"Unknown symbol {match!r}")
+                    raise SyntaxError(
+                        f"Unknown symbol, line {type_token.line} -> {match!r}"
+                    )
 
                 replacement = self._state[match].value
                 new_string = new_string.replace(
@@ -59,60 +64,47 @@ class Parser:
 
             return new_string[1:-1]
 
-        raise Exception("Something went wrong parsing types")
+        raise Exception(f"Failed to parse types, line {type_token.line}")
 
-    def perform_basic_op(self, op: TokenType) -> None:
-        can_be_string = False
-
+    def get_op_func(
+        self, line: int, op: TokenType, a: t.Any, b: t.Any
+    ) -> t.Callable[[], t.Any]:
         if op is TokenType.ADD:
-            error_op = "add"
-            can_be_string = True
+            return lambda: a + b
+
         elif op is TokenType.SUB:
-            error_op = "sub"
+            return lambda: a - b
+
         elif op is TokenType.MUL:
-            error_op = "mul"
+            return lambda: a * b
+
         elif op is TokenType.DIV:
-            error_op = "div"
+            return lambda: a / b
+
         elif op is TokenType.FDIV:
-            error_op = "fdiv"
+            return lambda: a // b
+
         elif op is TokenType.POW:
-            error_op = "pow"
-        else:
-            raise RuntimeError("Got invalid basic operation")
+            return lambda: a ** b
 
-        if len(self._stack) < 2:
-            raise RuntimeError(f"Not enough data on the stack to {error_op!r}")
+        raise SyntaxError(f"Invalid basic op, line {line}")
 
-        a = self._stack.pop()
-        b = self._stack.pop()
+    def perform_basic_op(self, op: TokenType, line: int) -> None:
+        try:
+            a = self._stack.pop()
+            b = self._stack.pop()
+        except IndexError:
+            raise RuntimeError(f"Not enough data on the stack, line {line} ")
 
         if isinstance(a, bool) or isinstance(b, bool):
-            raise RuntimeError("Cannot perform basic operations on bools")
+            raise RuntimeError(f"Cannot perform basic ops on bools, line {line}")
 
-        if not can_be_string:
-            if isinstance(a, str) or isinstance(b, str):
-                raise RuntimeError(f"Cannot perform {error_op!r} on a string")
+        op_func = self.get_op_func(line, op, a, b)
 
-        if any(isinstance(item, str) for item in (a, b)):
-            a = str(a)
-            b = str(b)
-
-        if op is TokenType.ADD:
-            self._stack.append(a + b)
-            return None
-
-        assert not isinstance(a, str) and not isinstance(b, str)
-
-        if op is TokenType.SUB:
-            self._stack.append(a - b)
-        elif op is TokenType.MUL:
-            self._stack.append(a * b)
-        elif op is TokenType.DIV:
-            self._stack.append(a / b)
-        elif op is TokenType.FDIV:
-            self._stack.append(a // b)
-        elif op is TokenType.POW:
-            self._stack.append(a ** b)
+        try:
+            self._stack.append(op_func())
+        except TypeError:
+            return self._stack.append(str(a) + str(b))
 
     def parse(self, tokens: list[Token]) -> None:
         while len(tokens) > 0:
@@ -124,7 +116,8 @@ class Parser:
                 if next_token.token_type is TokenType.IDENT:
                     if next_token.value not in self._state:
                         raise RuntimeError(
-                            f"Cannot push into unknown variable {next_token.value!r}"
+                            f"Unknown variable, line {token.line}"
+                            f" -> {next_token.value!r}"
                         )
 
                     self._stack.append(self._state[next_token.value].value)
@@ -134,19 +127,67 @@ class Parser:
                         self.convert_value_to_type(next_token, tokens.pop(0))
                     )
 
-            elif token.token_type is TokenType.POP:
-                if not self._stack:
-                    raise RuntimeError("Not enough data on the stack to pop")
+            elif token.token_type is TokenType.PUSHD:
+                next_token = tokens.pop(0)
 
+                if next_token.token_type is TokenType.IDENT:
+                    popped = self._state.pop(next_token.value, None)
+
+                    if popped is None:
+                        raise RuntimeError(
+                            f"Unknown variable, line {token.line}"
+                            f" -> {next_token.value!r}"
+                        )
+
+                    self._stack.append(popped.value)
+
+                else:
+                    self._stack.append(
+                        self.convert_value_to_type(next_token, tokens.pop(0))
+                    )
+
+            elif token.token_type is TokenType.DROP:
                 ident_token = tokens.pop(0)
+
                 if ident_token.token_type is not TokenType.IDENT:
                     raise RuntimeError(
-                        f"{ident_token.value!r} is an invalid token after pop"
+                        f"Invalid token after drop, line {token.line}"
+                        f" -> {ident_token.value!r}"
+                    )
+
+                popped = self._state.pop(ident_token.value, None)
+                if popped is None:
+                    raise RuntimeError(
+                        f"Unknown variable, line {token.line}"
+                            f" -> {ident_token.value!r}"
+                    )
+
+            elif token.token_type is TokenType.POP:
+                if not self._stack:
+                    raise RuntimeError(
+                        f"Not enough data on the stack, line {token.line}"
+                    )
+
+                ident_token = tokens.pop(0)
+                if ident_token.token_type is TokenType.DROP:
+                    self._stack.pop()
+                    continue
+
+                if ident_token.token_type is not TokenType.IDENT:
+                    raise RuntimeError(
+                        f"Invalid token after pop, line {token.line}"
+                        f" -> {ident_token.value!r}"
                     )
 
                 if ident_token.value not in self._state:
+                    if ident_token.value is None:
+                        raise RuntimeError(
+                            f"Missing token after pop, line {token.line}"
+                        )
+
                     raise RuntimeError(
-                        f"Cannot pop into unknown variable {ident_token.value!r}"
+                        f"Unknown variable, line {token.line}"
+                        f" -> {ident_token.value!r}"
                     )
 
                 popped = self._stack.pop()
@@ -162,9 +203,9 @@ class Parser:
                 TokenType.DIV,
                 TokenType.FDIV,
             ):
-                self.perform_basic_op(token.token_type)
+                self.perform_basic_op(token.token_type, token.line)
 
-            elif token.token_type is TokenType.NEW:
+            elif token.token_type is TokenType.VAR:
                 type_token = tokens.pop(0)
                 ident_token = tokens.pop(0)
                 variable_type: type
@@ -174,17 +215,23 @@ class Parser:
                     or ident_token.token_type is not TokenType.IDENT
                 ):
                     raise SyntaxError(
-                        "You must provide a type and identifier after the new keyword"
+                        f"Invalid syntax, line {token.line} "
+                        f"-> var must be followed by type and then name"
                     )
 
                 if ident_token.value.lower() in KEYWORDS:
-                    raise SyntaxError(f"{ident_token.value!r} is a reserved keyword")
+                    raise SyntaxError(
+                        f"Reserved keyword, line {token.line} -> {ident_token.value!r}"
+                    )
 
                 if any(
                     delim in ident_token.value
                     for delim in (" ", "(", ")", "{", "}", "[", "]")
                 ):
-                    raise SyntaxError("Identifiers can not contain spaces")
+                    raise SyntaxError(
+                        f"Bad variable name, line {token.line} -> "
+                        f"{ident_token.value!r} can not contain spaces but does"
+                    )
 
                 if type_token.value is Type.INT:
                     variable_type = int
@@ -193,12 +240,18 @@ class Parser:
                 elif type_token.value is Type.STRING:
                     variable_type = str
                 else:
-                    raise SyntaxError(f"Unknown type {type_token.value!r}")
+                    raise SyntaxError(
+                        f"Unknown type, line {token.line}"
+                        f" -> {type_token.value!r}"
+                    )
 
                 if ident_token.value in self._state:
-                    raise RuntimeError(f"{ident_token.value!r} is already defined")
+                    raise RuntimeError(
+                        f"Cannot redefine, line {token.line} "
+                        f"-> {ident_token.value!r} is already defined"
+                    )
 
-                variable = Variable(ident_token.value, variable_type)
+                variable = Variable(ident_token.value, variable_type, ident_token.line)
                 self._state[variable.name] = variable
 
             elif token.token_type is TokenType.MOVE:
@@ -210,16 +263,30 @@ class Parser:
                     or value_token.token_type is not TokenType.VALUE
                 ):
                     raise SyntaxError(
-                        "Move must be followed by an identifier and a value"
+                        f"Syntax error, line {token.line} -> "
+                        "move requires a variable and a value to move"
                     )
 
                 if ident_token.value not in self._state:
                     raise RuntimeError(
-                        f"Cannot move into unknown variable {ident_token.value!r}"
+                        f"Unknown variable, line {ident_token.line} "
+                        f"-> {ident_token.value!r}"
                     )
 
                 variable = self._state[ident_token.value]
-                variable.value = variable.type(value_token.value)
+
+                if variable.type is str:
+                    variable.value = self.convert_value_to_type(
+                        Token(
+                            TokenType.TYPE,
+                            line=ident_token.line,
+                            value=Type.STRING,
+                        ),
+                        value_token,
+                    )
+
+                else:
+                    variable.value = variable.type(value_token.value)
 
             elif token.token_type is TokenType.PRINT:
                 if token.value is TokenType.IDENT:
@@ -227,6 +294,7 @@ class Parser:
 
                     if next_token.value not in self._state:
                         raise RuntimeError(
+                            f"Unknown variable, line {token.line} -> "
                             f"{next_token.value!r} is an unknown variable"
                         )
 
@@ -234,11 +302,31 @@ class Parser:
 
                 else:
                     if not self._stack:
-                        raise RuntimeError("Not enough data on the stack to print")
+                        raise RuntimeError(
+                            f"Failed to print, line {token.line} "
+                            "-> Not enough data on the stack"
+                        )
 
                     target = self._stack.pop()
 
                 print(target)
 
+            elif token.token_type is TokenType.EOF:
+                if self._stack:
+                    raise RuntimeError(
+                        f"Unhandled data on the stack, line {token.line} "
+                        f"-> {len(self._stack)} items"
+                    )
+
+                if self._state:
+                    raise RuntimeError(
+                        "Variables not dropped: %s" %
+                        ", ".join(
+                            f"line {v.line} -> {v.name!r}" for v in self._state.values()
+                        )
+                    )
+
             else:
-                raise RuntimeError(f"Error parsing token {token}")
+                raise RuntimeError(
+                    f"Error parsing token, line {token.line} -> {token}"
+                )

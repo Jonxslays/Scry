@@ -15,4 +15,5 @@ class Type(Enum):
 class Variable:
     name: str
     type: t.Any
+    line: int
     value: t.Any = None

@@ -1,4 +1,4 @@
-new     int     age
-move    age     31
-push    string  "I am ${age}"
+push    string  "World!"
+push    string  "Hello, "
+add
 print
