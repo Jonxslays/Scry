@@ -13,11 +13,33 @@ class Parser:
         self._state: dict[str, Variable] = {}
 
     def convert_value_to_type(self, type_token: Token, value_token: Token) -> t.Any:
-        if type_token.value is Type.INT:
+        if type_token.value in (Type.INT, Type.UINT):
             if "." in value_token.value:
-                return float(value_token.value)
+                raise ValueError(
+                    "Value incompatible with type, line "
+                    f"{value_token.line} -> {value_token.value!r}"
+                )
 
-            return int(value_token.value)
+            converted = int(type_token.value)
+
+            if type_token.value is Type.UINT and converted < 0:
+                raise ValueError(
+                    "Unsigned int can not be negative, line "
+                    f"{type_token.line} -> {value_token.value!r}"
+                )
+
+            return converted
+
+        if type_token.value in (Type.FLOAT, Type.UFLOAT):
+            converted = float(value_token.value)
+
+            if type_token.value is Type.UFLOAT and converted < 0:
+                raise ValueError(
+                    "Unsigned float can not be negative, line "
+                    f"{type_token.line} -> {value_token.value!r}"
+                )
+
+            return converted
 
         if type_token.value is Type.BOOL:
             string = value_token.value.lower()

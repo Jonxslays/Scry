@@ -48,6 +48,24 @@ class Lexer:
                 Token(TokenType.VALUE, line=line_num, value=value),
             ]
 
+        if type_.lower() == "uint":
+            return [
+                Token(TokenType.TYPE, line=line_num, value=Type.UINT),
+                Token(TokenType.VALUE, line=line_num, value=value),
+            ]
+
+        if type_.lower() == "float":
+            return [
+                Token(TokenType.TYPE, line=line_num, value=Type.FLOAT),
+                Token(TokenType.VALUE, line=line_num, value=value),
+            ]
+
+        if type_.lower() == "ufloat":
+            return [
+                Token(TokenType.TYPE, line=line_num, value=Type.UFLOAT),
+                Token(TokenType.VALUE, line=line_num, value=value),
+            ]
+
         if type_.lower() == "bool":
             return [
                 Token(TokenType.TYPE, line=line_num, value=Type.BOOL),

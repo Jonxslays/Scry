@@ -9,6 +9,9 @@ class Type(Enum):
     INT = 0
     STRING = 1
     BOOL = 2
+    UINT = 3
+    FLOAT = 4
+    UFLOAT = 5
 
 
 @dataclass

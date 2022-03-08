@@ -1,4 +1,4 @@
-push    string  "World!"
-push    string  "Hello, "
-add
+push ufloat 2.2
+push float -2.4
+sub
 print

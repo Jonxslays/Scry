@@ -24,9 +24,12 @@ KEYWORDS = (
     "end",  # TODO: implement me
     "start",  # TODO: implement me
     "funk",  # TODO: implement me - maybe?
-    "float",  # TODO: implement me
-    "uint",  # TODO: implement me
-    "ufloat"  # TODO: implement me
+    "int",  # Integer whole numbers
+    "string",  # String of characters
+    "bool",     # Boolean, truthy value
+    "float",  # A floating point number
+    "uint",  # An unsigned integer
+    "ufloat"  # An unsigned float
     "drop",  # Drops the value from memory, can be used with a variable or with pop
     "pushd",  # Like push, but used with variables to also drop the variable from memory
     "null",  # TODO: Idk if i wanna do this yet
@@ -48,12 +51,9 @@ class TokenType(enum.Enum):
     IDENT = 11
     VAR = 12
     FDIV = 13
-    FLOAT = 14
-    UINT = 15
-    UFLOAT = 16
-    DROP = 17
-    PUSHD = 18
-    EOF = 19
+    DROP = 14
+    PUSHD = 15
+    EOF = 16
 
 
 @dataclass
