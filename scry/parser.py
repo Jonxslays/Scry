@@ -24,12 +24,12 @@ class Parser:
                     f"{value_token.line} -> {value_token.value!r}"
                 )
 
-            iconverted = int(type_token.value)
+            iconverted = int(value_token.value)
 
             if type_token.value is Type.UINT and iconverted < 0:
                 raise errors.ScryExc(
                     "Unsigned int can not be negative, line "
-                    f"{type_token.line} -> {value_token.value!r}"
+                    f"{value_token.line} -> {value_token.value!r}"
                 )
 
             return iconverted
@@ -40,7 +40,7 @@ class Parser:
             if type_token.value is Type.UFLOAT and fconverted < 0:
                 raise errors.ScryExc(
                     "Unsigned float can not be negative, line "
-                    f"{type_token.line} -> {value_token.value!r}"
+                    f"{value_token.line} -> {value_token.value!r}"
                 )
 
             return fconverted
