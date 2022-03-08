@@ -29,22 +29,17 @@ class Parser:
                 return False
 
             raise SyntaxError(
-                "Invalid boolean value, line "
-                f"{type_token.line} -> {string!r}"
+                "Invalid boolean value, line " f"{type_token.line} -> {string!r}"
             )
 
         if type_token.value is Type.STRING:
             new_string: str = value_token.value
 
             if not new_string.startswith('"'):
-                raise SyntaxError(
-                    f"Missing opening `\"`, line {type_token.line}"
-                )
+                raise SyntaxError(f'Missing opening `"`, line {type_token.line}')
 
             if not new_string.endswith('"'):
-                raise SyntaxError(
-                    f"Missing closing `\"`, line {type_token.line}"
-                )
+                raise SyntaxError(f'Missing closing `"`, line {type_token.line}')
 
             var_regex = re.compile(r"\$\{(.*)\}")
             var_matches = var_regex.findall(new_string)
@@ -58,8 +53,7 @@ class Parser:
                 replacement = self._state[match].value
                 new_string = new_string.replace(
                     "${" + match + "}",
-                    replacement if isinstance(replacement, str)
-                    else str(replacement),
+                    replacement if isinstance(replacement, str) else str(replacement),
                 )
 
             return new_string[1:-1]
@@ -85,7 +79,7 @@ class Parser:
             return lambda: a // b
 
         elif op is TokenType.POW:
-            return lambda: a ** b
+            return lambda: a**b
 
         raise SyntaxError(f"Invalid basic op, line {line}")
 
@@ -159,7 +153,7 @@ class Parser:
                 if popped is None:
                     raise RuntimeError(
                         f"Unknown variable, line {token.line}"
-                            f" -> {ident_token.value!r}"
+                        f" -> {ident_token.value!r}"
                     )
 
             elif token.token_type is TokenType.POP:
@@ -192,7 +186,7 @@ class Parser:
 
                 popped = self._stack.pop()
                 self._state[ident_token.value] = Variable(
-                    ident_token.value, type(popped), popped
+                    ident_token.value, type(popped), ident_token.line, popped
                 )
 
             elif token.token_type in (
@@ -241,8 +235,7 @@ class Parser:
                     variable_type = str
                 else:
                     raise SyntaxError(
-                        f"Unknown type, line {token.line}"
-                        f" -> {type_token.value!r}"
+                        f"Unknown type, line {token.line}" f" -> {type_token.value!r}"
                     )
 
                 if ident_token.value in self._state:
@@ -320,13 +313,11 @@ class Parser:
 
                 if self._state:
                     raise RuntimeError(
-                        "Variables not dropped: %s" %
-                        ", ".join(
+                        "Variables not dropped: %s"
+                        % ", ".join(
                             f"line {v.line} -> {v.name!r}" for v in self._state.values()
                         )
                     )
 
             else:
-                raise RuntimeError(
-                    f"Error parsing token, line {token.line} -> {token}"
-                )
+                raise RuntimeError(f"Error parsing token, line {token.line} -> {token}")

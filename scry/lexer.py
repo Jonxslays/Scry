@@ -142,9 +142,7 @@ class Lexer:
                 )
 
             self._tokens.append(Token(TokenType.MOVE, line=line_num))
-            self._tokens.append(
-                Token(TokenType.IDENT, line=line_num, value=ident)
-            )
+            self._tokens.append(Token(TokenType.IDENT, line=line_num, value=ident))
 
             return self._tokens.append(
                 Token(TokenType.VALUE, line=line_num, value=data.lstrip())

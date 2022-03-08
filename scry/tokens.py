@@ -32,6 +32,7 @@ KEYWORDS = (
     "null",  # TODO: Idk if i wanna do this yet
 )
 
+
 class TokenType(enum.Enum):
     PUSH = 0
     ADD = 1
