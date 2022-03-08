@@ -1,4 +1,10 @@
-push ufloat 2.2
-push float -2.4
-sub
+push    int     100
+push    int     50
+add
+print
+
+var     string  name
+move    name    "Jonxslays"
+push    string  "My name is ${name}"
+drop    name
 print
