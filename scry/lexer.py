@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from scry.tokens import Token, TokenType
+from scry import errors
+from scry.tokens import Token
+from scry.tokens import TokenType
 from scry.types import Type
 
 
@@ -78,7 +80,7 @@ class Lexer:
                 Token(TokenType.VALUE, line=line_num, value=value),
             ]
 
-        raise SyntaxError(f"Invalid type, line {line_num} -> {line}")
+        raise errors.ScryExc(f"Invalid type, line {line_num} -> {line}")
 
     def lex_new_var(self, line_num: int, line: str) -> None:
         data = self.lex_with_type(line_num, line)
@@ -148,13 +150,13 @@ class Lexer:
             try:
                 ident, data = value.split(" ", maxsplit=1)
             except ValueError:
-                raise SyntaxError(
+                raise errors.ScryExc(
                     f"Invalid syntax, line {line_num} -> "
                     "move requires a variable and a value to move"
                 )
 
             if ident.isdigit():
-                raise SyntaxError(
+                raise errors.ScryExc(
                     f"Invalid syntax, line {line_num} -> "
                     "variables can not contain only numbers"
                 )
@@ -176,4 +178,4 @@ class Lexer:
 
             return None
 
-        raise SyntaxError(f"Invalid syntax, line {line_num} -> {line}")
+        raise errors.ScryExc(f"Invalid syntax, line {line_num} -> {line}")

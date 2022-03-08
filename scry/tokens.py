@@ -26,7 +26,7 @@ KEYWORDS = (
     "funk",  # TODO: implement me - maybe?
     "int",  # Integer whole numbers
     "string",  # String of characters
-    "bool",     # Boolean, truthy value
+    "bool",  # Boolean, truthy value
     "float",  # A floating point number
     "uint",  # An unsigned integer
     "ufloat"  # An unsigned float
