@@ -15,7 +15,7 @@ python = ">=3.8,<3.12"
 [tool.poetry.dev-dependencies]
 len8 = "==0.7.3.post0"
 pyright = "==1.1.244"
-mypy = "==0.950"
+mypy = "==0.960"
 nox = "==2022.1.7"
 isort = "==5.10.1"
 flake8 = "==4.0.1"
