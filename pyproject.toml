@@ -14,12 +14,12 @@ python = ">=3.8,<3.12"
 
 [tool.poetry.dev-dependencies]
 len8 = "==0.7.3.post0"
-pyright = "==1.1.244"
-mypy = "==0.950"
-nox = "==2022.1.7"
+pyright = "==1.1.278"
+mypy = "==0.982"
+nox = "==2022.8.7"
 isort = "==5.10.1"
-flake8 = "==4.0.1"
-black = "==22.10.0"
+flake8 = "==5.0.4"
+black = "==22.3.0"
 
 [tool.black]
 line-length = 88
